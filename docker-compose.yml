@@ -1,0 +1,21 @@
+version: "3.2"
+
+services:
+  frontend:
+    build:
+      context: frontend
+    volumes:
+      - "./frontend:/app:rw"
+    ports:
+      - 3000:3000
+    depends_on:
+      - main
+    restart: always
+  main:
+    build:
+      context: backend/main
+    restart: always
+    volumes:
+      - "./backend/main:/app:rw"
+    ports:
+      - 8080:8080

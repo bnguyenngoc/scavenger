@@ -1,0 +1,39 @@
+{
+  "name": "main",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "apollo-server": "^2.19.0",
+    "apollo-server-express": "^2.19.0",
+    "body-parser": "^1.19.0",
+    "envalid": "^6.0.2",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "graphql": "^15.4.0",
+    "graphql-tools": "^7.0.2",
+    "helmet": "^4.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "memorystore": "^1.6.4",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "clean-webpack-plugin": "^3.0.0",
+    "nodemon": "^2.0.6",
+    "start-server-webpack-plugin": "^2.2.5",
+    "webpack": "^5.10.1",
+    "webpack-cli": "^4.2.0",
+    "webpack-merge": "^5.7.0",
+    "webpack-node-externals": "^2.5.2"
+  },
+  "scripts": {
+    "build": "webpack --config webpack.production.js",
+    "start": "node dist/server.js",
+    "build:dev": "webpack --config webpack.development.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-dev": "nodemon --watch src --ext js ./src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
