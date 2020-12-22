@@ -1,11 +1,12 @@
-const { makeExecutableSchema } = require("apollo-server");
+const { SchemaComposer } = require("graphql-compose");
+const { challengeMutation, challengeQuery } = require("./challenge/schema");
 
-const typeDefs = require("./typedefs");
-const resolvers = require("./resolvers");
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers,
+const graphQLComposer = new SchemaComposer();
+graphQLComposer.Query.addFields({ ...challengeQuery });
+graphQLComposer.Mutation.addFields({
+  ...challengeMutation,
 });
+
+const schema = graphQLComposer.buildSchema();
 
 module.exports = schema;

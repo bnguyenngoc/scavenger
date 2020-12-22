@@ -3,7 +3,7 @@ const { ApolloServer } = require("apollo-server-express");
 const { env } = require("../utils");
 
 class GraphqlServer {
-  constructor(appServer, schema, database) {
+  constructor(appServer, schema) {
     this.app = appServer.app;
     this.path = appServer.path;
     this.port = appServer.port;
@@ -26,8 +26,9 @@ class GraphqlServer {
   }
   listen() {
     const listener = this.app.listen({ port: this.port, path: this.path }, () => {
-      console.log(`🥺 👉 GraphQL API ready at port ${this.port} 👈 `);
+      console.log(`🥺 👉 GraphQL API ready at localhost:${this.port}${this.path} 👈 `);
     });
+
     listener.keepAliveTimeout = env.API_TIMEOUT;
     listener.headersTimeout = env.API_TIMEOUT;
     listener.on("connection", function (socket) {

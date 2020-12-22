@@ -9,7 +9,7 @@ const { env } = require("./utils");
  */
 require("./connectors/mongodb-connector");
 
-const appServer = new AppServer(env.GRAPHQL_PORT, "/api");
+const appServer = new AppServer(env.GRAPHQL_PORT);
 const graphqlServer = new GraphqlServer(appServer, schema);
 
 // Start GraphqlServer

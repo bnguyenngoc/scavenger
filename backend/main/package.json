@@ -11,6 +11,8 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "graphql": "^15.4.0",
+    "graphql-compose": "^7.23.0",
+    "graphql-compose-mongoose": "^9.0.0",
     "graphql-tools": "^7.0.2",
     "helmet": "^4.2.0",
     "jsonwebtoken": "^8.5.1",
