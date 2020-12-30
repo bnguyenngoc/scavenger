@@ -8,12 +8,26 @@ const customizationOptions = {};
 const UserTC = composeMongoose(User, customizationOptions);
 
 // function to encrypt user password using bcrypt
-// NOT WORKING FOR UPDATEBYID FOR SOME REASON!!
 function encryptPassword(resolvers) {
   Object.keys(resolvers).forEach((k) => {
     resolvers[k] = resolvers[k].wrapResolve((next) => async (rp) => {
       rp.beforeRecordMutate = async function (doc, rp) {
-        if (doc.password) {
+        // if updating, we need to modity the args and not the doc
+        // the doc will be the data from the db
+        if (rp.info.fieldName === "userUpdateById") {
+          if (rp.context.req.userId != doc._id && rp.context.req.role !== "admin") {
+            throw new Error("You cannot update another user");
+          }
+          let password = rp.args.record.password;
+          if (password) {
+            rp.args.record.password = bcrypt.hashSync(password, 8);
+          }
+          if (rp.args.record.role && rp.context.req.role && rp.context.req.role !== "admin") {
+            delete rp.args.record["role"];
+          }
+        }
+        // we are creating a doc and therefore doc is the user input data
+        else {
           doc.password = bcrypt.hashSync(doc.password, 8);
         }
         return doc;
@@ -50,7 +64,7 @@ UserTC.addResolver({
     if (!isEqual) {
       throw new Error("Password is not correct"); // again, for testing purposes
     }
-    const token = jwt.sign({ userId: user._id }, env.JWT_SECRET, {
+    const token = jwt.sign({ userId: user._id, role: user.role }, env.JWT_SECRET, {
       expiresIn: "24h",
     });
     user.token = token;
