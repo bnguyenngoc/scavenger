@@ -9,6 +9,7 @@ const env = envalid.cleanEnv(process.env, {
   MONGODB_PWD: str({ default: "dev" }),
   MONGODB_ADDR: str({ default: "http://mongodb:27017" }),
   MONGODB_DB: str({ default: "scavenger" }),
+  JWT_SECRET: str({ default: "ThisIsALegitJWTSecret" }),
 });
 
 module.exports = env;

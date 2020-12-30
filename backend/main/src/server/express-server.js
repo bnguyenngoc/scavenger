@@ -5,6 +5,7 @@ const MemoryStore = require("memorystore")(session);
 const helmet = require("helmet");
 
 const { env } = require("../utils");
+const middleware = require("../middleware/middlewares");
 
 class AppServer {
   constructor(port, path) {
@@ -16,6 +17,7 @@ class AppServer {
     this.app.use(bodyParser.json({ limit: "50mb" }));
     this.app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
     this.app.unsubscribe(helmet());
+    this.app.use(middleware.isAuth);
 
     const memoryStore = new MemoryStore({ checkPeriod: 86400000 }); //prune entries every 24h
     this.app.use(
@@ -27,6 +29,10 @@ class AppServer {
         saveUninitialized: true,
       })
     );
+    //health check route
+    this.app.get("/check", (req, res, next) => {
+      res.send("API is running...");
+    });
   }
 }
 

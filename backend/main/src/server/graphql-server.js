@@ -11,6 +11,12 @@ class GraphqlServer {
     this.server = new ApolloServer({
       schema: schema,
       playground: true,
+      // inject express request in context
+      context: ({ req }) => {
+        return {
+          req,
+        };
+      },
       formatError: (err) => {
         delete err.extensions.exception.stacktrace;
         const log = {
@@ -18,6 +24,7 @@ class GraphqlServer {
           detail: err.extensions.exception ? err.extensions.exception : null,
           path: err.path ? err.path[0] : null,
         };
+        console.error(log);
         return log;
       },
     });

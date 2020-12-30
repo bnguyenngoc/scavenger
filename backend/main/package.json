@@ -6,6 +6,7 @@
   "dependencies": {
     "apollo-server": "^2.19.0",
     "apollo-server-express": "^2.19.0",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "envalid": "^6.0.2",
     "express": "^4.17.1",

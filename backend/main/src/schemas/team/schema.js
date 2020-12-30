@@ -36,11 +36,9 @@ const teamQuery = {
   teamByIds: TeamTC.mongooseResolvers.findByIds(),
   teamOne: TeamTC.mongooseResolvers.findOne(),
   teamMany: TeamTC.mongooseResolvers.findMany(),
-  teamMany: TeamTC.mongooseResolvers.findMany(),
   teamDataLoader: TeamTC.mongooseResolvers.dataLoader(),
   teamDataLoaderMany: TeamTC.mongooseResolvers.dataLoaderMany(),
   teamCount: TeamTC.mongooseResolvers.count(),
-  teamConnection: TeamTC.mongooseResolvers.connection(),
   teamPagination: TeamTC.mongooseResolvers.pagination(),
 };
 
@@ -58,4 +56,5 @@ const teamMutation = {
 module.exports = {
   teamQuery,
   teamMutation,
+  TeamTC,
 };
