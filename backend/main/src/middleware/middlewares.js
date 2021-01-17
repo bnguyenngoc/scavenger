@@ -27,6 +27,7 @@ module.exports = {
     req.isAuth = true;
     req.role = decodedToken.role;
     req.userId = decodedToken.userId;
+    req.team = decodedToken.team;
     next();
   },
 };

@@ -1,9 +1,26 @@
 const { composeMongoose } = require("graphql-compose-mongoose");
 const Team = require("./model");
 const { UserTC } = require("../user/schema");
+const { authOnly, adminOnly } = require("../../middleware/wrapper");
 
 const customizationOptions = {};
 const TeamTC = composeMongoose(Team, customizationOptions);
+
+// Verify only captains of a team or admins can update or delete a team
+function isCaptain(resolvers) {
+  Object.keys(resolvers).forEach((k) => {
+    resolvers[k] = resolvers[k].wrapResolve((next) => async (rp) => {
+      rp.beforeRecordMutate = async function (doc, rp) {
+        if (doc.captain !== rp.context.req.userId && rp.context.req.role !== "admin") {
+          throw new Error("Only captains or admins can modify this team");
+        }
+        return doc;
+      };
+      return next(rp);
+    });
+  });
+  return resolvers;
+}
 
 // Add relation between teams and users
 /**
@@ -36,21 +53,27 @@ const teamQuery = {
   teamByIds: TeamTC.mongooseResolvers.findByIds(),
   teamOne: TeamTC.mongooseResolvers.findOne(),
   teamMany: TeamTC.mongooseResolvers.findMany(),
-  teamDataLoader: TeamTC.mongooseResolvers.dataLoader(),
-  teamDataLoaderMany: TeamTC.mongooseResolvers.dataLoaderMany(),
   teamCount: TeamTC.mongooseResolvers.count(),
   teamPagination: TeamTC.mongooseResolvers.pagination(),
 };
 
+//TODO Create team application model so users can apply for a team and
+// captain can accept or refuse an application
 const teamMutation = {
-  teamCreateOne: TeamTC.mongooseResolvers.createOne(),
-  teamCreateMany: TeamTC.mongooseResolvers.createMany(),
-  teamUpdateById: TeamTC.mongooseResolvers.updateById(),
-  teamUpdateOne: TeamTC.mongooseResolvers.updateOne(),
-  teamUpdateMany: TeamTC.mongooseResolvers.updateMany(),
-  teamRemoveById: TeamTC.mongooseResolvers.removeById(),
-  teamRemoveOne: TeamTC.mongooseResolvers.removeOne(),
-  teamRemoveMany: TeamTC.mongooseResolvers.removeMany(),
+  ...authOnly({
+    teamCreateOne: TeamTC.mongooseResolvers.createOne(),
+    teamCreateMany: TeamTC.mongooseResolvers.createMany(),
+  }),
+  ...isCaptain({
+    teamUpdateById: TeamTC.mongooseResolvers.updateById(),
+    teamUpdateOne: TeamTC.mongooseResolvers.updateOne(),
+    teamRemoveById: TeamTC.mongooseResolvers.removeById(),
+    teamRemoveOne: TeamTC.mongooseResolvers.removeOne(),
+    teamRemoveMany: TeamTC.mongooseResolvers.removeMany(),
+  }),
+  ...adminOnly({
+    teamUpdateMany: TeamTC.mongooseResolvers.updateMany(),
+  }),
 };
 
 module.exports = {

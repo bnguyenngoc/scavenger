@@ -2,6 +2,7 @@ const { composeMongoose } = require("graphql-compose-mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { User } = require("./model");
+const Team = require("../team/model");
 const { env } = require("../../utils");
 
 const customizationOptions = {};
@@ -38,6 +39,9 @@ function encryptPassword(resolvers) {
   });
   return resolvers;
 }
+
+UserTC.removeField("role");
+
 // Add Token as a field on the Type Composer level, since we don't want to
 // save it in the db, only query it on the GraphQL api level
 UserTC.addFields({
@@ -48,7 +52,7 @@ UserTC.addFields({
 });
 
 UserTC.addResolver({
-  kind: "mutation",
+  kind: "query",
   name: "login",
   args: {
     email: "String!",
@@ -64,7 +68,8 @@ UserTC.addResolver({
     if (!isEqual) {
       throw new Error("Password is not correct"); // again, for testing purposes
     }
-    const token = jwt.sign({ userId: user._id, role: user.role }, env.JWT_SECRET, {
+    const team = await Team.findOne({ members: user._id });
+    const token = jwt.sign({ userId: user._id, role: user.role, team: team ? team._id : "" }, env.JWT_SECRET, {
       expiresIn: "24h",
     });
     user.token = token;
@@ -77,16 +82,16 @@ const userQuery = {
   userByIds: UserTC.mongooseResolvers.findByIds(),
   userOne: UserTC.mongooseResolvers.findOne(),
   userMany: UserTC.mongooseResolvers.findMany(),
-  userMany: UserTC.mongooseResolvers.findMany(),
   userDataLoader: UserTC.mongooseResolvers.dataLoader(),
   userDataLoaderMany: UserTC.mongooseResolvers.dataLoaderMany(),
   userCount: UserTC.mongooseResolvers.count(),
   userConnection: UserTC.mongooseResolvers.connection(),
   userPagination: UserTC.mongooseResolvers.pagination(),
+  login: UserTC.getResolver("login"),
 };
 
+//TODO Cascade user deletion on all other documents
 const userMutation = {
-  login: UserTC.getResolver("login"),
   ...encryptPassword({
     userCreateOne: UserTC.mongooseResolvers.createOne(),
     userUpdateById: UserTC.mongooseResolvers.updateById(),

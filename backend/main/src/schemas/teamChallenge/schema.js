@@ -2,9 +2,30 @@ const { composeMongoose } = require("graphql-compose-mongoose");
 const TeamChallenge = require("./model");
 const { TeamTC } = require("../team/schema");
 const { ChallengeTC } = require("../challenge/schema");
+const { authOnly, judgeOrAdminOnly } = require("../../middleware/wrapper");
 
 const customizationOptions = {};
 const TeamChallengeTC = composeMongoose(TeamChallenge, customizationOptions);
+
+// Check if user is member of team when updating or judge or admin
+function isMember(resolvers) {
+  Object.keys(resolvers).forEach((k) => {
+    resolvers[k] = resolvers[k].wrapResolve((next) => async (rp) => {
+      rp.beforeRecordMutate = async function (doc, rp) {
+        if (rp.context.req.team !== doc._id && rp.context.req.role !== "judge" && rp.context.req.role !== "admin") {
+          throw new Error("You are not authorized to update this challenge");
+        }
+        if (rp.args.record.score && rp.context.req.role !== "judge" && rp.context.req.role !== "admin") {
+          delete rp.args.record["score"];
+        }
+        return doc;
+      };
+
+      return next(rp);
+    });
+  });
+  return resolvers;
+}
 
 TeamChallengeTC.addRelation("team", {
   resolver: () => TeamTC.mongooseResolvers.findById(),
@@ -37,14 +58,18 @@ const teamChallengeQuery = {
 };
 
 const teamChallengeMutation = {
-  teamCreateOne: TeamChallengeTC.mongooseResolvers.createOne(),
-  teamCreateMany: TeamChallengeTC.mongooseResolvers.createMany(),
-  teamUpdateById: TeamChallengeTC.mongooseResolvers.updateById(),
-  teamUpdateOne: TeamChallengeTC.mongooseResolvers.updateOne(),
-  teamUpdateMany: TeamChallengeTC.mongooseResolvers.updateMany(),
-  teamRemoveById: TeamChallengeTC.mongooseResolvers.removeById(),
-  teamRemoveOne: TeamChallengeTC.mongooseResolvers.removeOne(),
-  teamRemoveMany: TeamChallengeTC.mongooseResolvers.removeMany(),
+  ...authOnly({
+    teamChallengeCreateOne: TeamChallengeTC.mongooseResolvers.createOne(),
+    teamChallengeCreateMany: TeamChallengeTC.mongooseResolvers.createMany(),
+  }),
+  ...isMember({
+    teamChallengeUpdateById: TeamChallengeTC.mongooseResolvers.updateById(),
+  }),
+  ...judgeOrAdminOnly({
+    teamChallengeRemoveById: TeamChallengeTC.mongooseResolvers.removeById(),
+    teamChallengeRemoveOne: TeamChallengeTC.mongooseResolvers.removeOne(),
+    teamChallengeRemoveMany: TeamChallengeTC.mongooseResolvers.removeMany(),
+  }),
 };
 
 module.exports = {
